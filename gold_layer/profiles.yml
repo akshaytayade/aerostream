@@ -1,0 +1,16 @@
+gold_layer:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'db_files/aerostream_gold.duckdb'
+      threads: 1
+      extensions:
+        - parquet
+        - httpfs
+      settings:
+        s3_endpoint: 'localhost:9000'          # Change to 'host.docker.internal:9000' if running via Airflow/Docker
+        s3_access_key_id: 'minioadmin'
+        s3_secret_access_key: 'minioadmin'
+        s3_use_ssl: false
+        s3_url_style: 'path'

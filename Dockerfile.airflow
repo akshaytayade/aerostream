@@ -1,0 +1,8 @@
+FROM apache/airflow:2.8.0-python3.10
+
+# Install required packages at build time
+USER root
+RUN pip install --no-cache-dir boto3 pydantic requests kafka-python-ng
+
+# Switch back to airflow user
+USER airflow

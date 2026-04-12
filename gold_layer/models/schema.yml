@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: gold_daily_flight_stats
+    columns:
+      - name: flight_date
+        tests:
+          - unique
+          - not_null
+      - name: total_flights
+        tests:
+          - not_null
+
+  - name: gold_top_countries
+    columns:
+      - name: country
+        tests:
+          - not_null

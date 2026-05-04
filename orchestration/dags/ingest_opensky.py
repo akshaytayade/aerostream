@@ -15,11 +15,11 @@ default_args = {
 dag = DAG(
     'opensky_bronze_to_silver_pipeline',
     default_args=default_args,
-    description='End-to-end pipeline: Ingest → Validate → Transform → Silver',
+    description='End-to-end pipeline: Ingest -> Validate -> Transform -> Silver',
     schedule_interval=timedelta(hours=1),
     start_date=datetime(2025, 1, 1),
     catchup=False,
-    tags=['bronze', 'silver', 'spark', 'opensky']
+    tags=['bronze', 'silver', 'opensky']
 )
 
 def run_ingestion():
@@ -44,7 +44,7 @@ ingest_task = PythonOperator(
 
 # Task 2: Bronze to Silver transformation
 transform_task = PythonOperator(
-    task_id='spark_bronze_to_silver',
+    task_id='bronze_to_silver',
     python_callable=run_silver_transform,
     dag=dag,
 )

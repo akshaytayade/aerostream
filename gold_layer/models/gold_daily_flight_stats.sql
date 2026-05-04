@@ -1,7 +1,7 @@
 {{ config(materialized='table') }}
 
 select
-    date_trunc('day', cast(last_contact as timestamp)) as flight_date,
+    date_trunc('day', to_timestamp(last_contact)) as flight_date,
     count(*) as total_flights,
     count(distinct icao24) as unique_aircraft,
     avg(altitude) as avg_altitude,

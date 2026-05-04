@@ -1,9 +1,12 @@
+import io
 import json
 import logging
 import os
 from datetime import datetime
 
 import boto3
+import pyarrow as pa
+import pyarrow.parquet as pq
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
@@ -63,12 +66,13 @@ def transform_to_silver(records: list[dict]) -> list[dict]:
     transformed: dict[tuple[str, int], dict] = {}
 
     for r in records:
-        flight_id = (r.get("icao24") or "").strip()
+        icao24 = (r.get("icao24") or "").strip()
         last_contact = int(r.get("last_contact") or 0)
-        key = (flight_id, last_contact)
+        key = (icao24, last_contact)
 
         transformed[key] = {
-            "flight_id": flight_id,
+            "icao24": icao24,
+            "flight_id": icao24,
             "callsign": r.get("callsign"),
             "country": r.get("country") or "UNKNOWN",
             "last_contact": last_contact,
@@ -95,15 +99,20 @@ def transform_to_silver(records: list[dict]) -> list[dict]:
 def write_silver(records: list[dict]) -> str:
     now = datetime.utcnow()
     partition = f"flight_states/year={now.year}/month={now.month:02d}/day={now.day:02d}/hour={now.hour:02d}"
-    key = f"{partition}/silver_{now.strftime('%Y%m%d_%H%M%S')}.json"
+    key = f"{partition}/silver_{now.strftime('%Y%m%d_%H%M%S')}.parquet"
+
+    table = pa.Table.from_pylist(records)
+    parquet_buffer = io.BytesIO()
+    pq.write_table(table, parquet_buffer, compression="snappy")
+    parquet_buffer.seek(0)
 
     s3.put_object(
         Bucket=SILVER_BUCKET,
         Key=key,
-        Body=json.dumps(records).encode("utf-8"),
-        ContentType="application/json",
+        Body=parquet_buffer.getvalue(),
+        ContentType="application/octet-stream",
     )
-    logger.info(f"Wrote silver data to s3://{SILVER_BUCKET}/{key}")
+    logger.info(f"Wrote silver parquet to s3://{SILVER_BUCKET}/{key}")
     return key
 
 
